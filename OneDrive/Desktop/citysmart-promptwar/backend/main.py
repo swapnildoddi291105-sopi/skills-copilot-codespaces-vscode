@@ -25,13 +25,24 @@ load_dotenv()
 app = FastAPI(title="Roamly API", version="2.0.0")
 
 # CORS middleware
+frontend_origins_raw = os.getenv("FRONTEND_ORIGINS", "")
+origins = [o.strip() for o in frontend_origins_raw.split(",") if o.strip()]
+if not origins:
+    origins = ["*"]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=origins,
+    allow_credentials=True if origins != ["*"] else False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 
 @app.exception_handler(HTTPException)
 async def custom_http_exception_handler(request: Request, exc: HTTPException):
