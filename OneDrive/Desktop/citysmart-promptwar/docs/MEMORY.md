@@ -43,6 +43,8 @@ Frontend data flow:
 | Modularized App.jsx components | All components in frontend/src/components/ under ~200 lines each | 2026-10-11 |
 | Wikipedia REST Proxy endpoint | Cached /api/wiki-summary proxy with 10m TTL in backend | 2026-10-11 |
 | Favorites in localStorage | Stored in roamly_saved_places with live navbar counter | 2026-10-11 |
+| Compare Radar Chart (Recharts) | Strictly 3 numeric axes (Rating, Affordability, Proximity); exclude nulls; hide chart if <3 axes; label relative | 2026-10-11 |
+| AI Assistant Grounding & UI UX | Show resolved location, sync map pins on place click, cold-start waking message + retry, transparent empty states | 2026-10-11 |
 
 ---
 
@@ -147,11 +149,11 @@ citysmart-promptwar/
 | react-dom | ^18.3.1 | DOM renderer |
 | react-leaflet | ^4.2.1 | Leaflet React bindings |
 | leaflet | ^1.9.4 | Map library |
+| recharts | ^2.15.1 | Radar comparison chart (Phase 3) |
 | @vitejs/plugin-react | ^4.3.4 | Vite React plugin |
 | vite | ^6.0.0 | Build tool |
 
 **Not yet installed (needed in later phases):**
-- `recharts` — Phase 3 (radar chart in Compare)
 - `framer-motion` — Phase 8 (animations)
 - `lucide-react` — Phase 2 (icons)
 

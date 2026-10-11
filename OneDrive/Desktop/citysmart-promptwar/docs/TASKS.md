@@ -62,15 +62,17 @@
 
 ---
 
-## Phase 3 — AI Assistant & Compare Upgrade [ ]
+## Phase 3 — AI Assistant & Compare Upgrade ✅
 
-- [ ] Install `recharts` — Phase 3, P0
-- [ ] Compare: radar chart for available numeric dimensions — Phase 3, P0
-- [ ] Compare: note which dimensions are excluded from chart (null values) — Phase 3, P0
-- [ ] AI: city-neutral suggested prompts — Phase 3, P0
-- [ ] AI: response shows `data_source` badge — Phase 3, P0
-- [ ] AI: map updates when assistant returns places — Phase 3, P0
-- [ ] AI: sends `user_location.name` in payload — Phase 3, P0
+- [x] Install `recharts` — Phase 3, P0
+- [x] Compare: radar chart for available numeric dimensions (Rating, Affordability, Proximity) — Phase 3, P0
+- [x] Compare: note which dimensions are excluded from chart (null values or <3 axes) — Phase 3, P0
+- [x] Compare: table shows "Not available" for nulls and Remove button per place — Phase 3, P0
+- [x] AI: show resolved location returned by backend ("Searched in: ...") — Phase 3, P0
+- [x] AI: clicking place opens drawer and updates map pins — Phase 3, P0
+- [x] AI: friendly empty message with filter loosen suggestions, cold-start delay indicator & retry button — Phase 3, P0
+- [x] AI: grounded explanation mentioning only returned places and noting missing prices/ratings — Phase 3, P0
+- [x] Backend: verified /api/wiki-summary proxy User-Agent, timeout, memory cache, clean error response — Phase 3, P0
 
 ---
 

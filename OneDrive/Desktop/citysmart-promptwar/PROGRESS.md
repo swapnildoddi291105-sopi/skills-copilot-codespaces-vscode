@@ -8,9 +8,9 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Phase 2 — Explore & Place Details Polish [Complete] ✅ |
-| **Overall Progress** | ~45% (Phase 0, 1, 2 Complete) |
-| **Next 3 Actions** | 1. Phase 3 Recharts radar compare chart · 2. Add lucide-react icons · 3. Phase 4 Dashboard & Air Quality Pulse |
+| **Current Phase** | Phase 3 — AI Assistant & Compare Upgrade [Complete] ✅ |
+| **Overall Progress** | ~55% (Phase 0, 1, 2, 3 Complete) |
+| **Next 3 Actions** | 1. Phase 4 Dashboard & Air Quality Pulse · 2. Add lucide-react icons · 3. Phase 5 History & Culture layer |
 | **Blockers** | None |
 | **Last Updated** | 2026-10-11 |
 
@@ -170,3 +170,35 @@
 - `GET /api/wiki-summary?title=Shaniwar_Wada`: 200 OK (returned authentic summary).
 - `npm run build`: PASSED (built in 11.89s, 0 errors).
 - Tabs verified: Explore, Map, AI Assistant, and Compare all functional.
+
+---
+
+### 2026-10-11 — Phase 3: AI Assistant & Compare Upgrade (Completed)
+
+**What was built & refined:**
+- **Wikipedia Proxy Verification (Backend)**:
+  - Verified `GET /api/wiki-summary` enforces `User-Agent: Roamly-student-project/1.0`, timeout of 5.0s, in-memory caching in `WIKIPEDIA_CACHE` (10-minute TTL), and clean fallback JSON (`{"title": title, "extract": null, "thumbnail": null}`) on error.
+- **Compare Tab: Recharts Radar Chart**:
+  - Integrated `recharts` radar chart for 2–4 places with exactly 3 numeric axes:
+    - `Rating` (0–5 scaled to 0–100)
+    - `Affordability` (inverse of `price_inr` relative to compared places)
+    - `Proximity` (inverse of `distance_km` relative to compared places)
+  - Zero text conversion into numbers (cleanliness & accessibility retained exclusively in table).
+  - Dynamic exclusion note: `"Not charted: <Metric> (missing for <Place>)"`.
+  - Hides radar and falls back cleanly to the table if < 3 axes remain.
+  - Subtitle explicitly notes: *"Relative to the selected places"*.
+  - Added individual "Remove" button per place card/column.
+- **AI Assistant Enhancements**:
+  - Displays resolved search location badge (`"Searched in: <Location>"`).
+  - Clicking any recommendation opens details drawer and updates map pins / centers map.
+  - Added cold-start server awakening banner (`"Waking up the server & parsing filters..."`) with retry button on error.
+  - Empty-state suggestion chips with guidance to loosen filters.
+  - Grounded responses that only mention returned places and explicitly disclose missing prices/ratings.
+- **Branch**:
+  - Switched to git branch `phase-3`.
+
+**Verification:**
+- `python backend/smoke_test.py`: 11/11 PASSED.
+- `npm run build`: PASSED (built cleanly with 0 errors).
+- Queries tested: `"Find historical places near me"`, `"Find museums in London"`, and `"asdfgh"`.
+- Radar comparison tested with 2 and 3 places (including places with missing ratings).

@@ -633,7 +633,7 @@ def run_assistant(req: AssistantRequest):
         elif req.user_location:
             lat = req.user_location.lat
             lng = req.user_location.lng
-            loc_name = "User Location"
+            loc_name = req.user_location.name or "Current Location"
 
         # Fetch places for the resolved location safely
         places_resp = get_places(
