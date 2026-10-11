@@ -8,9 +8,9 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Phase 3 — AI Assistant & Compare Upgrade [Complete] ✅ |
-| **Overall Progress** | ~55% (Phase 0, 1, 2, 3 Complete) |
-| **Next 3 Actions** | 1. Phase 4 Dashboard & Air Quality Pulse · 2. Add lucide-react icons · 3. Phase 5 History & Culture layer |
+| **Current Phase** | Phase 4 — Dashboard / Home Tab [Complete] ✅ |
+| **Overall Progress** | ~65% (Phase 0, 1, 2, 3, 4 Complete) |
+| **Next 3 Actions** | 1. Phase 5 History & Culture layer · 2. Add lucide-react icons · 3. Phase 6 Citizen Reports |
 | **Blockers** | None |
 | **Last Updated** | 2026-10-11 |
 
@@ -202,3 +202,30 @@
 - `npm run build`: PASSED (built cleanly with 0 errors).
 - Queries tested: `"Find historical places near me"`, `"Find museums in London"`, and `"asdfgh"`.
 - Radar comparison tested with 2 and 3 places (including places with missing ratings).
+
+---
+
+### 2026-10-11 — Phase 4: Dashboard / Home Tab & Quick Fixes (Completed)
+
+**What was built & refined:**
+- **Quick Fixes (Frontend)**:
+  - Replaced all blocking browser `alert()` invocations with non-blocking inline toasts in `App.jsx` and `MapView.jsx`.
+  - For geolocation errors / rejections: shows `"Couldn't get your location. Check browser permission. Showing Pune."` and cleanly retains the default city.
+  - Completely removed the mock `"Live City Help +1 234 567 8900"` support pill from the navbar.
+- **Backend Endpoints (`backend/main.py`)**:
+  - `GET /api/air-quality?lat=&lng=`: Proxies Open-Meteo Air Quality API (US AQI, European AQI, PM2.5, category), enforces 5.0s timeout, 10-minute in-memory caching (`AIR_QUALITY_CACHE`), and safe empty fallback JSON on error.
+  - `GET /api/traffic-estimate?lat=&lng=`: Returns time-of-day traffic heuristic (e.g. rush hour 8–10 and 17–20 as Heavy, otherwise Moderate/Light), clearly labeled `"label": "Estimated"` with a one-line `"basis"` explanation.
+- **Dashboard / Home Tab (`frontend/src/components/HomeTab.jsx`)**:
+  - Added new "Home" tab to navigation with responsive dashboard cards:
+    - Current weather card (temp, condition, Open-Meteo source, fetch time).
+    - Air Quality card (AQI score, category badge, PM2.5, Open-Meteo source, fetch time).
+    - Traffic Flow card (level, chip labeled "Estimated", heuristic model basis, fetch time).
+    - Quick-action tiles linking seamlessly to Explore, Map, AI Assistant, and Compare tabs.
+  - **Roamly Pulse (0–100)**: Computed dynamically from available inputs (weather comfort, AQI, traffic pace). Rescales cleanly if inputs are missing; displays inputs used, confidence rating (High/Medium/Low), and explicit disclaimer: *"Pulse is an indicator, not an official score."*
+  - Complete error states with Retry button, loading states, and "Not available" for missing fields.
+- **Verification & Documentation**:
+  - Updated `API.md` with `/api/air-quality` and `/api/traffic-estimate` contracts.
+  - Added test cases 12 and 13 to `backend/smoke_test.py` (13/13 PASSED).
+  - Production build `npm run build` PASSED with 0 errors.
+  - Switched to git branch `phase-4`.
+

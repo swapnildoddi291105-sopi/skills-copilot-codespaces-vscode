@@ -62,6 +62,7 @@ PLACES_DATA: List[Dict[str, Any]] = []
 OVERPASS_CACHE: Dict[Tuple[float, float, float], Tuple[float, List[Dict[str, Any]]]] = {}
 GEOCODE_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
 WIKIPEDIA_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+AIR_QUALITY_CACHE: Dict[Tuple[float, float], Tuple[float, Dict[str, Any]]] = {}
 
 
 @app.on_event("startup")
@@ -774,3 +775,116 @@ def get_wiki_summary(title: str = Query(..., min_length=1)):
     except Exception as e:
         logger.warning(f"Wikipedia fetch error for {title}: {type(e).__name__} - {str(e)}")
         return {"title": clean_title, "extract": None, "thumbnail": None}
+
+
+def aqi_category(aqi_val: Optional[float]) -> str:
+    if aqi_val is None:
+        return "Not available"
+    if aqi_val <= 50:
+        return "Good"
+    elif aqi_val <= 100:
+        return "Moderate"
+    elif aqi_val <= 150:
+        return "Unhealthy for Sensitive Groups"
+    elif aqi_val <= 200:
+        return "Unhealthy"
+    elif aqi_val <= 300:
+        return "Very Unhealthy"
+    else:
+        return "Hazardous"
+
+
+@app.get("/api/air-quality")
+def get_air_quality(
+    lat: float = Query(PUNE_LAT),
+    lng: float = Query(PUNE_LNG),
+):
+    """Fetch live air quality from Open-Meteo with in-memory caching and timeout."""
+    cache_key = (round(lat, 2), round(lng, 2))
+    now = time.time()
+
+    if cache_key in AIR_QUALITY_CACHE:
+        cached_time, cached_val = AIR_QUALITY_CACHE[cache_key]
+        if now - cached_time < CACHE_TTL_SECONDS:
+            return cached_val
+
+    url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+    params = {
+        "latitude": lat,
+        "longitude": lng,
+        "current": "european_aqi,us_aqi,pm2_5",
+    }
+
+    try:
+        with httpx.Client(timeout=5.0) as client:
+            resp = client.get(url, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+        curr = data.get("current", {})
+        us_aqi = curr.get("us_aqi")
+        european_aqi = curr.get("european_aqi")
+        pm2_5 = curr.get("pm2_5")
+
+        cat = aqi_category(us_aqi if us_aqi is not None else european_aqi)
+
+        res = {
+            "us_aqi": us_aqi,
+            "european_aqi": european_aqi,
+            "pm2_5": pm2_5,
+            "category": cat,
+            "source": "Open-Meteo",
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+        }
+        AIR_QUALITY_CACHE[cache_key] = (now, res)
+        return res
+    except Exception as e:
+        logger.warning(f"Air quality fetch error: {type(e).__name__} - {str(e)}")
+        # Safe empty payload on failure
+        return {
+            "us_aqi": None,
+            "european_aqi": None,
+            "pm2_5": None,
+            "category": "Not available",
+            "source": "Open-Meteo",
+            "fetched_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+
+@app.get("/api/traffic-estimate")
+def get_traffic_estimate(
+    lat: float = Query(PUNE_LAT),
+    lng: float = Query(PUNE_LNG),
+):
+    """
+    Time-of-day heuristic traffic estimate.
+    Never claims to be live traffic; clearly labeled as Estimated.
+    """
+    # Estimate local time from longitude (15 deg longitude ~= 1 hour offset from UTC)
+    utc_now = datetime.now(timezone.utc)
+    hour_offset = round(lng / 15.0)
+    est_hour = (utc_now.hour + hour_offset) % 24
+
+    # Peak rush hours: 8-10 AM and 17-20 (5-8 PM)
+    if (8 <= est_hour < 10) or (17 <= est_hour < 20):
+        level = "Heavy"
+        basis = f"Estimated rush hour conditions based on local time window ({est_hour:02d}:00)"
+        score = 80
+    elif (10 <= est_hour < 17) or (20 <= est_hour < 22):
+        level = "Moderate"
+        basis = f"Standard daytime traffic based on local time window ({est_hour:02d}:00)"
+        score = 50
+    else:
+        level = "Light"
+        basis = f"Off-peak / late hours based on local time window ({est_hour:02d}:00)"
+        score = 25
+
+    return {
+        "level": level,
+        "score": score,
+        "label": "Estimated",
+        "basis": basis,
+        "local_hour_approx": est_hour,
+        "fetched_at": datetime.now(timezone.utc).isoformat(),
+    }
+

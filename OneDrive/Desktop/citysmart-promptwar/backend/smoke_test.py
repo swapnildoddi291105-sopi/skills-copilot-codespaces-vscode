@@ -92,6 +92,14 @@ def run_tests():
     st, res = make_request("GET", "/api/weather?lat=18.5204&lng=73.8567")
     test("11. GET /api/weather - weather proxy shape", st, 200 if st == 200 else 0, lambda: st == 0 or ("temperature_c" in res and "condition" in res and "source" in res))
 
+    # 12. GET /api/air-quality - Open-Meteo AQI proxy (tolerant of network timeouts)
+    st, res = make_request("GET", "/api/air-quality?lat=18.5204&lng=73.8567")
+    test("12. GET /api/air-quality - air quality proxy shape", st, 200 if st == 200 else 0, lambda: st == 0 or ("category" in res and "source" in res))
+
+    # 13. GET /api/traffic-estimate - Time-of-day heuristic traffic estimate
+    st, res = make_request("GET", "/api/traffic-estimate?lat=18.5204&lng=73.8567")
+    test("13. GET /api/traffic-estimate - traffic estimate shape", st, 200, lambda: res.get("label") == "Estimated" and "level" in res and "basis" in res)
+
     print("=" * 65)
     print(f"Results: {passed} PASSED, {failed} FAILED")
     print("=" * 65)

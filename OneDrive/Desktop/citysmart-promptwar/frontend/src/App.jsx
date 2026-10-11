@@ -5,6 +5,7 @@ import PlaceDrawer from './PlaceDrawer.jsx';
 import LocationBar from './components/LocationBar.jsx';
 import LocationModal from './components/LocationModal.jsx';
 import ExploreTab from './components/ExploreTab.jsx';
+import HomeTab from './components/HomeTab.jsx';
 import AssistantTab from './components/AssistantTab.jsx';
 import CompareTab from './components/CompareTab.jsx';
 import Footer from './components/Footer.jsx';
@@ -13,9 +14,10 @@ import Footer from './components/Footer.jsx';
 const AppCtx = createContext();
 export const useApp = () => useContext(AppCtx);
 
-const TABS = ['Explore', 'Map', 'AI Assistant', 'Compare'];
+const TABS = ['Home', 'Explore', 'Map', 'AI Assistant', 'Compare'];
 
 const TAB_ICONS = {
+  Home: '🏠',
   Explore: '🔍',
   Map: '🗺️',
   'AI Assistant': '✨',
@@ -87,13 +89,15 @@ export default function App() {
         (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: 'Current Location' }),
         (err) => {
           setUserLocation({ lat: 18.5204, lng: 73.8567, name: 'Pune, Maharashtra' });
-          setLocationToast('Location access denied. Defaulting to Pune.');
+          setLocationToast("Couldn't get your location. Check browser permission. Showing Pune.");
           setTimeout(() => setLocationToast(''), 5000);
         },
         { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
       setUserLocation({ lat: 18.5204, lng: 73.8567, name: 'Pune, Maharashtra' });
+      setLocationToast("Couldn't get your location. Check browser permission. Showing Pune.");
+      setTimeout(() => setLocationToast(''), 5000);
     }
   }, []);
 
@@ -167,15 +171,21 @@ export default function App() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: 'Current Location' }),
-        (err) => alert('Unable to retrieve location.')
+        (err) => {
+          setLocationToast("Couldn't get your location. Check browser permission. Showing Pune.");
+          setTimeout(() => setLocationToast(''), 5000);
+        }
       );
+    } else {
+      setLocationToast("Geolocation is not supported by your browser.");
+      setTimeout(() => setLocationToast(''), 5000);
     }
   };
 
   const ctxValue = {
     places, filteredPlaces, setFilteredPlaces, userLocation, setUserLocation,
     selectedPlace, setSelectedPlace, compareIds, toggleCompare, savedIds, toggleSave,
-    dataSource,
+    dataSource, setLocationToast,
   };
 
   return (
@@ -261,19 +271,18 @@ export default function App() {
             <span>{savedIds.size > 0 ? '❤️' : '🤍'}</span>
             <span>Favorites ({savedIds.size})</span>
           </div>
-
-          <div className="support-pill">
-            <div className="support-icon">📞</div>
-            <div className="support-meta">
-              <span className="support-label">Live City Help</span>
-              <span className="support-value">+1 234 567 8900</span>
-            </div>
-          </div>
         </div>
       </header>
 
       {/* Main Content */}
       <main className="main-content">
+        {tab === 'Home' && (
+          <HomeTab
+            weather={weather}
+            userLocation={userLocation}
+            onNavigateTab={setTab}
+          />
+        )}
         {tab === 'Explore' && (
           <ExploreTab
             search={search} setSearch={setSearch}

@@ -385,6 +385,30 @@ export async function fetchWeather() {
   };
 }
 
+export async function fetchAirQuality() {
+  await delay(200);
+  return {
+    us_aqi: 110,
+    european_aqi: 75,
+    pm2_5: 28.5,
+    category: 'Moderate',
+    source: 'Open-Meteo',
+    fetched_at: new Date().toISOString(),
+  };
+}
+
+export async function fetchTrafficEstimate() {
+  await delay(150);
+  return {
+    level: 'Moderate',
+    score: 50,
+    label: 'Estimated',
+    basis: 'Standard daytime traffic based on local time window',
+    local_hour_approx: 14,
+    fetched_at: new Date().toISOString(),
+  };
+}
+
 export async function fetchGeocode({ q }) {
   await delay(300);
   const lower = q.toLowerCase();

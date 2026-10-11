@@ -66,3 +66,20 @@ export async function fetchWikiSummary(title) {
   const qs = new URLSearchParams({ title });
   return request(`/api/wiki-summary?${qs}`).catch(() => null);
 }
+
+export async function fetchAirQuality(params = {}) {
+  if (USE_MOCK) return mock.fetchAirQuality();
+  const qs = new URLSearchParams();
+  if (params.lat) qs.set('lat', params.lat);
+  if (params.lng) qs.set('lng', params.lng);
+  return request(`/api/air-quality?${qs}`);
+}
+
+export async function fetchTrafficEstimate(params = {}) {
+  if (USE_MOCK) return mock.fetchTrafficEstimate();
+  const qs = new URLSearchParams();
+  if (params.lat) qs.set('lat', params.lat);
+  if (params.lng) qs.set('lng', params.lng);
+  return request(`/api/traffic-estimate?${qs}`);
+}
+

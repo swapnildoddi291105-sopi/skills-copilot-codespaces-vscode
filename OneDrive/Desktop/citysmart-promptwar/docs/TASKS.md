@@ -76,16 +76,18 @@
 
 ---
 
-## Phase 4 — Dashboard / Home Tab [ ]
+## Phase 4 — Dashboard / Home Tab ✅
 
-- [ ] Add "Home" tab to navigation — Phase 4, P0
-- [ ] Weather card (current temp, condition, icon) — Phase 4, P0
-- [ ] Air quality card (Open-Meteo AQI endpoint) — Phase 4, P0
-- [ ] Backend: `GET /api/air-quality?lat=…&lng=…` endpoint — Phase 4, P0
-- [ ] Traffic mood chip (time-of-day heuristic, labeled "Estimated") — Phase 4, P0
-- [ ] Roamly Pulse (0–100) composite from weather + AQI + traffic + report density — Phase 4, P0
-- [ ] Pulse shows which inputs were used and confidence level — Phase 4, P0
-- [ ] Quick-action tiles (Explore, Map, AI, Report) — Phase 4, P0
+- [x] Add "Home" tab to navigation — Phase 4, P0
+- [x] Weather card (current temp, condition, source Open-Meteo, fetch time) — Phase 4, P0
+- [x] Air quality card (Open-Meteo AQI endpoint, value, category, PM2.5, source) — Phase 4, P0
+- [x] Backend: `GET /api/air-quality?lat=…&lng=…` endpoint (cached 10 min, timeout 5s, safe empty fallback) — Phase 4, P0
+- [x] Traffic mood chip (time-of-day heuristic, labeled "Estimated" with basis explanation) — Phase 4, P0
+- [x] Backend: `GET /api/traffic-estimate?lat=…&lng=…` heuristic endpoint — Phase 4, P0
+- [x] Roamly Pulse (0–100) composite from weather comfort + AQI + traffic flow — Phase 4, P0
+- [x] Pulse shows which inputs were used, confidence level (High/Medium/Low), and indicator disclaimer — Phase 4, P0
+- [x] Quick-action tiles (Explore, Map, AI, Compare) — Phase 4, P0
+- [x] Non-blocking inline toast for geolocation errors, removed navbar phone number — Quick Fixes, P0
 
 ---
 

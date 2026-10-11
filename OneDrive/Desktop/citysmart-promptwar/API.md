@@ -211,6 +211,48 @@ Proxy live weather data for specified coordinates from Open-Meteo API.
 
 ---
 
+### 7. `GET /api/air-quality`
+Proxy live air quality data for specified coordinates from Open-Meteo Air Quality API with 10-minute caching.
+
+#### Query Parameters:
+- `lat` *(optional number, default: 18.5204)*
+- `lng` *(optional number, default: 73.8567)*
+
+#### Response `200 OK`:
+```json
+{
+  "us_aqi": 117,
+  "european_aqi": 78,
+  "pm2_5": 29.6,
+  "category": "Moderate",
+  "source": "Open-Meteo",
+  "fetched_at": "2026-10-11T08:16:00Z"
+}
+```
+
+---
+
+### 8. `GET /api/traffic-estimate`
+Time-of-day heuristic traffic estimate (rush hours vs standard/light). Never claims to be live traffic; clearly labeled as Estimated.
+
+#### Query Parameters:
+- `lat` *(optional number, default: 18.5204)*
+- `lng` *(optional number, default: 73.8567)*
+
+#### Response `200 OK`:
+```json
+{
+  "level": "Moderate",
+  "score": 50,
+  "label": "Estimated",
+  "basis": "Standard daytime traffic based on local time window (14:00)",
+  "local_hour_approx": 14,
+  "fetched_at": "2026-10-11T08:16:00Z"
+}
+```
+
+---
+
 ## Standard Error Response Structure
 All non-200 responses return JSON with an `error` key:
 ```json

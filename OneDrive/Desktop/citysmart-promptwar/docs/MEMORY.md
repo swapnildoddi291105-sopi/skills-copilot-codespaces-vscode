@@ -45,6 +45,8 @@ Frontend data flow:
 | Favorites in localStorage | Stored in roamly_saved_places with live navbar counter | 2026-10-11 |
 | Compare Radar Chart (Recharts) | Strictly 3 numeric axes (Rating, Affordability, Proximity); exclude nulls; hide chart if <3 axes; label relative | 2026-10-11 |
 | AI Assistant Grounding & UI UX | Show resolved location, sync map pins on place click, cold-start waking message + retry, transparent empty states | 2026-10-11 |
+| Air Quality & Traffic Endpoints | Open-Meteo AQI proxy (10m cache, timeout 5s) & Time-of-day traffic heuristic labeled 'Estimated' | 2026-10-11 |
+| Home Dashboard & Roamly Pulse | Dynamic composite 0-100 indicator (weather, AQI, traffic), rescaled if missing, confidence levels, quick actions | 2026-10-11 |
 
 ---
 
@@ -58,6 +60,8 @@ Frontend data flow:
 | `POST` | `/api/compare` | Accepts `ids` or full `places` objects |
 | `POST` | `/api/assistant` | Gemini → regex fallback, grounded results |
 | `GET` | `/api/weather?lat=…&lng=…` | Open-Meteo, fallback payload on error |
+| `GET` | `/api/air-quality?lat=…&lng=…` | Open-Meteo Air Quality (US AQI, European AQI, PM2.5), 10m TTL cache, safe empty fallback |
+| `GET` | `/api/traffic-estimate?lat=…&lng=…` | Time-of-day heuristic (rush hours vs light/moderate), labeled "Estimated" |
 | `GET` | `/api/wiki-summary?title=…` | Wikipedia REST summary & thumbnail proxy with in-memory caching |
 
 **NEVER rename or delete these endpoints.**

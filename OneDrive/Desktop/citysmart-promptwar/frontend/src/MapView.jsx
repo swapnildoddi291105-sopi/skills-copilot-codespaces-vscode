@@ -42,21 +42,19 @@ function MapController({ pos, activeTab }) {
 }
 
 export default function MapView({ activeTab }) {
-  const { filteredPlaces, userLocation, setUserLocation, setSelectedPlace } = useApp();
+  const { filteredPlaces, userLocation, setUserLocation, setSelectedPlace, setLocationToast } = useApp();
   const mapRef = useRef(null);
 
   const handleLocate = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      if (setLocationToast) setLocationToast("Geolocation is not supported by your browser.");
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => setUserLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, name: 'Current Location' }),
       (err) => {
-        if (err.code === err.PERMISSION_DENIED) {
-          alert('Location permission denied. Please enable location access in your browser settings.');
-        } else {
-          alert('Unable to get your location.');
+        if (setLocationToast) {
+          setLocationToast("Couldn't get your location. Check browser permission. Showing Pune.");
         }
       },
       { enableHighAccuracy: true, timeout: 10000 }
