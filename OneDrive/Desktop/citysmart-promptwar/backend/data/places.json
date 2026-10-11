@@ -15,7 +15,8 @@
     "cleanliness": "Well maintained heritage grounds",
     "source": "Seed data (unverified)",
     "last_verified": "2026-10-09",
-    "area": "Shaniwar Peth"
+    "area": "Shaniwar Peth",
+    "wikipedia": "Shaniwar_Wada"
   },
   {
     "id": "aga-khan-palace",
@@ -33,7 +34,8 @@
     "cleanliness": "Very clean garden grounds",
     "source": "Seed data (unverified)",
     "last_verified": "2026-10-09",
-    "area": "Yerawada"
+    "area": "Yerawada",
+    "wikipedia": "Aga_Khan_Palace"
   },
   {
     "id": "sinhagad-fort",
@@ -51,7 +53,8 @@
     "cleanliness": null,
     "source": "Seed data (unverified)",
     "last_verified": "2026-10-09",
-    "area": "Thoptewadi"
+    "area": "Thoptewadi",
+    "wikipedia": "Sinhagad"
   },
   {
     "id": "lal-mahal",

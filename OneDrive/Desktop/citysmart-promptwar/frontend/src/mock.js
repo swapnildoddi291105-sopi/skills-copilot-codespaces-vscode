@@ -20,6 +20,7 @@ const PLACES = [
     last_verified: '2026-10-09',
     area: 'Shaniwar Peth',
     distance_km: null,
+    wikipedia: 'Shaniwar_Wada',
   },
   {
     id: 'aga-khan-palace',
@@ -39,6 +40,7 @@ const PLACES = [
     last_verified: '2026-10-09',
     area: 'Kalyani Nagar',
     distance_km: null,
+    wikipedia: 'Aga_Khan_Palace',
   },
   {
     id: 'sinhagad-fort',
@@ -58,6 +60,7 @@ const PLACES = [
     last_verified: '2026-10-09',
     area: 'Sinhagad Road',
     distance_km: null,
+    wikipedia: 'Sinhagad',
   },
   {
     id: 'dagdusheth-ganpati',

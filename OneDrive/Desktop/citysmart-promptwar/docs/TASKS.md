@@ -46,13 +46,15 @@
 
 ---
 
-## Phase 2 — Explore & Place Details Polish [ ]
+## Phase 2 — Explore & Place Details Polish [x]
 
+- [x] One-pass premium visual redesign matching reference image (clean blue/navy, hero banner, floating filter card, 4 circular feature highlights, image-based cards with badges, Why Choose Roamly 2x2 grid + promo banner, newsletter strip, and polished footer) — Phase 2, P0
+- [x] Honesty cleanup: Real data badges only (Top rated, Free, Nearest, Heritage), remove mock badges; rename highlights to transparent labels; illustrative visual headers; demo newsletter banner — Phase 2, P0
+- [x] Split App.jsx into separate component files under frontend/src/components/ (ExploreTab, PlaceCard, FilterPanel, LocationBar, Hero, Footer, AssistantTab, CompareTab, LocationModal each < 200 lines) — Phase 2
+- [x] Place Details drawer: show description with Wikipedia enrichment if `wikipedia` tag exists (cached REST summary + thumbnail with "Source: Wikipedia" label) — Phase 2, P0
+- [x] Place Details drawer: Wikimedia photo thumbnail if available — Phase 2, P1
+- [x] Favorites / Save: persist to localStorage with count badge in navbar — Phase 2, P1
 - [ ] Add `lucide-react` icons to category chips — Phase 2, P0
-- [ ] Split App.jsx into separate component files (target < 200 lines each) — Phase 2
-- [ ] Place Details drawer: show description with Wikipedia enrichment if `wikipedia` tag exists — Phase 2, P0
-- [ ] Place Details drawer: Wikimedia photo if available — Phase 2, P1
-- [ ] Favorites / Save: persist to localStorage — Phase 2, P1
 - [ ] "Open Now" filter (compare current time to `hours` field) — Phase 2, P1
 - [ ] Distance filter from current location — Phase 2, P0
 - [ ] Accessibility filter chip — Phase 2, P1

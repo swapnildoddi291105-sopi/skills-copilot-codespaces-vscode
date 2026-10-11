@@ -1,20 +1,17 @@
-import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
-import { fetchPlaces, fetchWeather, postAssistant, postCompare, fetchGeocode } from './api.js';
+import { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import { fetchPlaces, fetchWeather } from './api.js';
 import MapView from './MapView.jsx';
 import PlaceDrawer from './PlaceDrawer.jsx';
+import LocationBar from './components/LocationBar.jsx';
+import LocationModal from './components/LocationModal.jsx';
+import ExploreTab from './components/ExploreTab.jsx';
+import AssistantTab from './components/AssistantTab.jsx';
+import CompareTab from './components/CompareTab.jsx';
+import Footer from './components/Footer.jsx';
 
 // ===== App Context =====
 const AppCtx = createContext();
 export const useApp = () => useContext(AppCtx);
-
-const CATEGORIES = [
-  { value: '', label: 'All' },
-  { value: 'historical', label: 'Historical' },
-  { value: 'attraction', label: 'Attractions' },
-  { value: 'restaurant', label: 'Restaurants' },
-  { value: 'cafe', label: 'Cafes' },
-  { value: 'hotel', label: 'Hotels' },
-];
 
 const TABS = ['Explore', 'Map', 'AI Assistant', 'Compare'];
 
@@ -24,12 +21,6 @@ const TAB_ICONS = {
   'AI Assistant': '✨',
   Compare: '⚖️',
 };
-
-const SUGGESTED_PROMPTS = [
-  'Find historical places nearby under ₹500',
-  'Suggest three affordable cafes in the area',
-  'Best rated attractions nearby',
-];
 
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -51,6 +42,20 @@ function setCachedPlaces(key, data) {
   } catch (e) {}
 }
 
+function getStoredFavorites() {
+  try {
+    const raw = localStorage.getItem('roamly_saved_places');
+    if (raw) return new Set(JSON.parse(raw));
+  } catch (e) {}
+  return new Set();
+}
+
+function setStoredFavorites(set) {
+  try {
+    localStorage.setItem('roamly_saved_places', JSON.stringify([...set]));
+  } catch (e) {}
+}
+
 // ===== Main App =====
 export default function App() {
   const [tab, setTab] = useState('Explore');
@@ -69,7 +74,7 @@ export default function App() {
   
   const [selectedPlace, setSelectedPlace] = useState(null);
   const [compareIds, setCompareIds] = useState(new Set());
-  const [savedIds, setSavedIds] = useState(new Set());
+  const [savedIds, setSavedIds] = useState(getStoredFavorites);
   const [weather, setWeather] = useState(null);
   const [isLocModalOpen, setIsLocModalOpen] = useState(false);
 
@@ -147,11 +152,13 @@ export default function App() {
     });
   };
 
+  // Toggle save/favorite with localStorage persistence (Rule C.1)
   const toggleSave = (id) => {
     setSavedIds((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      setStoredFavorites(next);
       return next;
     });
   };
@@ -180,47 +187,90 @@ export default function App() {
         </div>
       )}
 
-      {/* Sticky Location Bar */}
-      <div className="location-bar">
-        <div>Searching near: <span style={{ fontWeight: 600, color: '#0F172A' }}>{userLocation?.name || '...'}</span></div>
-        <div className="actions">
-          <button onClick={() => setIsLocModalOpen(true)}>Change location</button>
-          <button onClick={handleUseMyLocation} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg> Use my location
-          </button>
-        </div>
-      </div>
+      {/* Modular LocationBar Component */}
+      <LocationBar
+        userLocation={userLocation}
+        onOpenModal={() => setIsLocModalOpen(true)}
+        onUseMyLocation={handleUseMyLocation}
+      />
 
-      {isLocModalOpen && <LocationModal onClose={() => setIsLocModalOpen(false)} onSelect={setUserLocation} />}
+      {isLocModalOpen && (
+        <LocationModal
+          onClose={() => setIsLocModalOpen(false)}
+          onSelect={setUserLocation}
+        />
+      )}
 
-      {/* Navbar */}
-      <nav className="navbar">
-        <div className="navbar-brand">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
-          <span>Roamly</span>
+      {/* Navbar with brand identity and favorites count badge (Rule C.1) */}
+      <header className="navbar">
+        <div className="navbar-brand" onClick={() => setTab('Explore')}>
+          <div className="navbar-brand-logo">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div>
+            Roamly <span className="brand-text-cursive">Travel & City</span>
+          </div>
         </div>
+
+        {/* Tab Navigation */}
+        <nav className="navbar-nav" aria-label="Main Navigation">
+          {TABS.map((t) => (
+            <button
+              key={t}
+              className={`tab-btn ${tab === t ? 'active' : ''}`}
+              onClick={() => setTab(t)}
+            >
+              <span>{TAB_ICONS[t]}</span>
+              <span>{t}</span>
+              {t === 'Compare' && compareIds.size > 0 && ` (${compareIds.size})`}
+            </button>
+          ))}
+        </nav>
+
         <div className="navbar-right">
           {weather && (
             <div className="weather-widget">
-              ☁️ {weather.temperature_c}°C · {weather.condition}
+              <span>☁️</span>
+              <span>{weather.temperature_c}°C · {weather.condition}</span>
             </div>
           )}
-        </div>
-      </nav>
 
-      {/* Tab Navigation */}
-      <div className="tab-nav">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            className={`tab-btn ${tab === t ? 'active' : ''}`}
-            onClick={() => setTab(t)}
+          {/* Favorites Count in Navbar (Rule C.1) */}
+          <div
+            className="favorites-navbar-pill"
+            title={`${savedIds.size} saved places in favorites`}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              background: savedIds.size > 0 ? '#FEE2E2' : '#F8FAFC',
+              color: savedIds.size > 0 ? '#E11D48' : '#64748B',
+              border: '1px solid',
+              borderColor: savedIds.size > 0 ? '#FECDD3' : '#E2E8F0',
+              padding: '6px 14px',
+              borderRadius: 9999,
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              cursor: 'default',
+            }}
           >
-            {TAB_ICONS[t]} {t}
-            {t === 'Compare' && compareIds.size > 0 && ` (${compareIds.size})`}
-          </button>
-        ))}
-      </div>
+            <span>{savedIds.size > 0 ? '❤️' : '🤍'}</span>
+            <span>Favorites ({savedIds.size})</span>
+          </div>
+
+          <div className="support-pill">
+            <div className="support-icon">📞</div>
+            <div className="support-meta">
+              <span className="support-label">Live City Help</span>
+              <span className="support-value">+1 234 567 8900</span>
+            </div>
+          </div>
+        </div>
+      </header>
 
       {/* Main Content */}
       <main className="main-content">
@@ -232,6 +282,10 @@ export default function App() {
             minRating={minRating} setMinRating={setMinRating}
             activeRadius={activeRadius} setActiveRadius={setActiveRadius}
             loading={loading}
+            onExploreClick={() => {
+              const el = document.getElementById('popular-places-heading');
+              if (el) el.scrollIntoView({ behavior: 'smooth' });
+            }}
           />
         )}
         {tab === 'Map' && <MapView activeTab={tab} />}
@@ -249,370 +303,8 @@ export default function App() {
       {/* Place Details Drawer */}
       {selectedPlace && <PlaceDrawer />}
 
-      {/* Footer */}
-      <footer className="footer">
-        Roamly — Data is for demonstration. Prices and ratings may be incomplete.
-      </footer>
+      {/* Modular Footer */}
+      <Footer onTabChange={setTab} onCategoryChange={setCategory} />
     </AppCtx.Provider>
-  );
-}
-
-// ===== Location Modal =====
-function LocationModal({ onClose, onSelect }) {
-  const [q, setQ] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState('');
-
-  const handleSearch = useCallback(async (query) => {
-    const searchStr = query != null ? query : q;
-    if (!searchStr.trim()) return;
-    setLoading(true); setErr('');
-    try {
-      const res = await fetchGeocode({ q: searchStr });
-      if (res && res.lat) {
-        onSelect(res);
-        onClose();
-      } else {
-        setErr('City not found.');
-      }
-    } catch (e) {
-      setErr('City not found or network error occurred.');
-    } finally {
-      setLoading(false);
-    }
-  }, [q, onSelect, onClose]);
-
-  // Debounced search on input change (300ms)
-  useEffect(() => {
-    if (!q.trim() || q.trim().length < 3) return;
-    const timer = setTimeout(() => {
-      handleSearch(q);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [q, handleSearch]);
-
-  return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal" onClick={(e) => e.stopPropagation()}>
-        <h3>Change Location</h3>
-        <input 
-          autoFocus
-          placeholder="Enter city name (e.g., Tokyo, Paris, Mumbai)..." 
-          value={q} 
-          onChange={(e) => setQ(e.target.value)} 
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-        />
-        {err && <p style={{color: '#EF4444', fontSize: '0.8rem', marginTop: 6, marginBottom: 10}}>{err}</p>}
-        <div className="modal-actions" style={{ marginTop: 12 }}>
-          <button className="btn btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={() => handleSearch()}>{loading ? 'Searching...' : 'Search'}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
-// ===== Explore Tab =====
-function ExploreTab({ search, setSearch, category, setCategory, maxPrice, setMaxPrice, minRating, setMinRating, activeRadius, setActiveRadius, loading }) {
-  const { filteredPlaces, compareIds, toggleCompare, setSelectedPlace, dataSource } = useApp();
-
-  return (
-    <>
-      <div className="search-section">
-        <div className="search-bar">
-          <span className="search-icon">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </span>
-          <input
-            id="search-input"
-            type="text"
-            placeholder="Search places, areas, or keywords…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <div className="chips-row">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.value}
-              className={`chip ${category === c.value ? 'active' : ''}`}
-              onClick={() => setCategory(c.value)}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="filter-controls">
-          <div className="filter-group">
-            <div className="filter-group-row">
-              <label>Radius:</label>
-              <div className="chips-row">
-                {[1, 3, 5, 10].map(r => (
-                  <button 
-                    key={r} 
-                    className={`chip ${activeRadius === r ? 'active' : ''}`}
-                    onClick={() => setActiveRadius(r)}
-                  >
-                    {r} km
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-          
-          <div className="filter-group">
-            <div className="filter-group-row">
-              <label>Budget (max ₹):</label>
-              <input
-                id="budget-input"
-                type="number"
-                min="0"
-                placeholder="Any"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-                style={{ width: 80 }}
-              />
-            </div>
-            <span className="filter-help">Applies only to places with price data.</span>
-          </div>
-
-          <div className="filter-group">
-            <div className="filter-group-row">
-              <label>Min Rating:</label>
-              <select value={minRating} onChange={(e) => setMinRating(e.target.value)}>
-                <option value="">Any</option>
-                <option value="3">3+</option>
-                <option value="3.5">3.5+</option>
-                <option value="4">4+</option>
-                <option value="4.5">4.5+</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {dataSource === 'unavailable' && (
-        <div style={{ background: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B', padding: '12px 16px', borderRadius: 12, marginBottom: 20, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span>⚠️</span>
-          <span>Live data for this location is currently unavailable. Try expanding your search radius or choosing another city.</span>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="places-grid">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="place-card skeleton" style={{ height: 160 }} />)}
-        </div>
-      ) : filteredPlaces.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-state-icon">📭</div>
-          <h3>No places match your filters</h3>
-          <p>Try adjusting your search query, increasing radius, or clearing filters.</p>
-        </div>
-      ) : (
-        <div className="places-grid">
-          {filteredPlaces.map((p) => (
-            <PlaceCard
-              key={p.id}
-              place={p}
-              checked={compareIds.has(p.id)}
-              onToggle={() => toggleCompare(p.id)}
-              onClick={() => setSelectedPlace(p)}
-            />
-          ))}
-        </div>
-      )}
-    </>
-  );
-}
-
-// ===== Place Card =====
-export function PlaceCard({ place, checked, onToggle, onClick }) {
-  const isLive = place.source && place.source.toLowerCase().includes('openstreetmap');
-  return (
-    <div className="place-card" onClick={onClick}>
-      <div className="place-card-header">
-        <div className="place-card-name">{place.name}</div>
-        <div className="card-badges">
-          <span className={`category-badge ${place.category}`}>{place.category}</span>
-          <span className={`source-badge ${isLive ? 'live' : 'demo'}`}>
-            {isLive ? 'Live: OpenStreetMap' : 'Demo data'}
-          </span>
-        </div>
-      </div>
-      <div className="place-card-details">
-        <span>📍 {place.area || 'Unknown area'}</span>
-        <span>💰 {place.price_inr != null ? `₹${place.price_inr}` : 'Not available'}</span>
-        <span>⭐ {place.rating != null ? place.rating : 'Not available'}</span>
-        {place.distance_km != null && <span>📏 {place.distance_km} km</span>}
-      </div>
-      <div className="place-card-footer">
-        <label className="compare-check" onClick={(e) => e.stopPropagation()}>
-          <input
-            type="checkbox"
-            checked={checked || false}
-            onChange={onToggle}
-          />
-          Compare
-        </label>
-      </div>
-    </div>
-  );
-}
-
-// ===== AI Assistant Tab =====
-function AssistantTab() {
-  const { setFilteredPlaces, setSelectedPlace, userLocation, compareIds, toggleCompare } = useApp();
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-
-  const send = async (text) => {
-    const msg = text || input;
-    if (!msg.trim()) return;
-    setInput('');
-    setMessages((prev) => [...prev, { role: 'user', content: msg }]);
-    setLoading(true);
-    try {
-      const data = await postAssistant({
-        message: msg,
-        user_location: userLocation,
-      });
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: data.explanation, places: data.places, filters: data.filters },
-      ]);
-      if (data.places?.length) setFilteredPlaces(data.places);
-    } catch (e) {
-      setMessages((prev) => [
-        ...prev,
-        { role: 'assistant', content: `Sorry, something went wrong: ${e.message}`, places: [], filters: null },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <div className="assistant-container">
-      <div className="prompt-chips">
-        {SUGGESTED_PROMPTS.map((p) => (
-          <button key={p} className="prompt-chip" onClick={() => send(p)}>💡 {p}</button>
-        ))}
-      </div>
-
-      <div className="chat-input-row">
-        <input
-          id="assistant-input"
-          type="text"
-          placeholder="Ask me about places near you..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && send()}
-        />
-        <button className="btn btn-primary" onClick={() => send()}>Send</button>
-      </div>
-
-      <div className="chat-messages">
-        {messages.map((m, i) => (
-          <div key={i} className={`chat-msg ${m.role}`}>
-            {m.content}
-            {m.filters && (
-              <div className="filters-understood">
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginRight: 4, fontWeight: 500 }}>Filters understood:</span>
-                {m.filters.category && <span className="filter-tag">Category: {m.filters.category}</span>}
-                {m.filters.max_price != null && <span className="filter-tag">Max Price: ₹{m.filters.max_price}</span>}
-                {m.filters.min_rating != null && <span className="filter-tag">Min Rating: {m.filters.min_rating}</span>}
-                {m.filters.keywords?.length > 0 && <span className="filter-tag">Keywords: {m.filters.keywords.join(', ')}</span>}
-              </div>
-            )}
-            {m.places?.length > 0 && (
-              <div className="places-grid" style={{ marginTop: 16 }}>
-                {m.places.map((p) => (
-                  <PlaceCard
-                    key={p.id}
-                    place={p}
-                    checked={compareIds.has(p.id)}
-                    onToggle={() => toggleCompare(p.id)}
-                    onClick={() => setSelectedPlace(p)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
-        {loading && <div className="loading-dots"><span className="skeleton" style={{width: 8, height: 8, borderRadius: '50%'}} /><span className="skeleton" style={{width: 8, height: 8, borderRadius: '50%'}} /><span className="skeleton" style={{width: 8, height: 8, borderRadius: '50%'}} /></div>}
-      </div>
-    </div>
-  );
-}
-
-// ===== Compare Tab =====
-function CompareTab() {
-  const { compareIds, toggleCompare, places } = useApp();
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (compareIds.size < 2) { setData(null); return; }
-    setLoading(true);
-    setError(null);
-    postCompare({ ids: [...compareIds] })
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [compareIds]);
-
-  if (compareIds.size < 2) {
-    return (
-      <div className="empty-state">
-        <div className="empty-state-icon">⚖️</div>
-        <h3>Select at least 2 places to compare</h3>
-        <p>Use the checkboxes on place cards in the Explore tab.</p>
-      </div>
-    );
-  }
-
-  if (loading) return <div className="skeleton" style={{ height: 300, width: '100%', borderRadius: 12 }}></div>;
-  if (error) return <div className="empty-state"><h3>Error</h3><p>{error}</p></div>;
-  if (!data) return null;
-
-  return (
-    <div className="compare-table-wrapper">
-      <table className="compare-table">
-        <thead>
-          <tr>
-            <th>Attribute</th>
-            {data.places.map((p) => (
-              <th key={p.id}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-                  {p.name}
-                  <button className="compare-remove" onClick={() => toggleCompare(p.id)} title="Remove">✕</button>
-                </div>
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {data.rows.map((row) => (
-            <tr key={row.field}>
-              <td>{row.label}</td>
-              {data.places.map((p) => (
-                <td key={p.id}>
-                  {row.values[p.id] != null ? (
-                    String(row.values[p.id])
-                  ) : (
-                    <span className="not-available">Not available</span>
-                  )}
-                </td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }

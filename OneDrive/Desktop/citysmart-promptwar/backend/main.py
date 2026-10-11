@@ -4,6 +4,7 @@ import math
 import os
 import re
 import time
+import urllib.parse
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -60,6 +61,7 @@ CACHE_TTL_SECONDS = 600  # 10 minutes
 PLACES_DATA: List[Dict[str, Any]] = []
 OVERPASS_CACHE: Dict[Tuple[float, float, float], Tuple[float, List[Dict[str, Any]]]] = {}
 GEOCODE_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+WIKIPEDIA_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
 
 
 @app.on_event("startup")
@@ -227,6 +229,7 @@ def parse_osm_elements(elements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
             "source": "OpenStreetMap (Overpass)",
             "last_verified": today_iso,
             "area": area,
+            "wikipedia": tags.get("wikipedia"),
         })
 
     return places
@@ -729,3 +732,45 @@ def get_weather(
             "source": "Open-Meteo (fallback)",
             "fetched_at": datetime.now(timezone.utc).isoformat(),
         }
+
+
+@app.get("/api/wiki-summary")
+def get_wiki_summary(title: str = Query(..., min_length=1)):
+    """Proxy Wikipedia REST summary endpoint with in-memory caching."""
+    clean_title = title.strip()
+    if clean_title.lower().startswith("en:"):
+        clean_title = clean_title[3:].strip()
+    # Format spaces as underscores for wikipedia API
+    api_title = clean_title.replace(" ", "_")
+
+    now = time.time()
+    cache_key = api_title.lower()
+    if cache_key in WIKIPEDIA_CACHE:
+        cached_time, cached_val = WIKIPEDIA_CACHE[cache_key]
+        if now - cached_time < CACHE_TTL_SECONDS:
+            return cached_val
+
+    url = f"https://en.wikipedia.org/api/rest_v1/page/summary/{urllib.parse.quote(api_title)}"
+    headers = {"User-Agent": "Roamly-student-project/1.0"}
+
+    try:
+        with httpx.Client(timeout=5.0) as client:
+            resp = client.get(url, headers=headers)
+            if resp.status_code == 404:
+                result = {"title": clean_title, "extract": None, "thumbnail": None}
+                WIKIPEDIA_CACHE[cache_key] = (now, result)
+                return result
+            resp.raise_for_status()
+            data = resp.json()
+
+            result = {
+                "title": data.get("title", clean_title),
+                "extract": data.get("extract"),
+                "thumbnail": data.get("thumbnail", {}).get("source") if data.get("thumbnail") else None,
+                "description": data.get("description"),
+            }
+            WIKIPEDIA_CACHE[cache_key] = (now, result)
+            return result
+    except Exception as e:
+        logger.warning(f"Wikipedia fetch error for {title}: {type(e).__name__} - {str(e)}")
+        return {"title": clean_title, "extract": None, "thumbnail": None}

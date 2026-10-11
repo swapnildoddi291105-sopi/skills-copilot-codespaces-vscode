@@ -8,11 +8,11 @@
 
 | Field | Value |
 |---|---|
-| **Current Phase** | Phase 1 — Location Awareness (End-to-End) ✅ |
-| **Overall Progress** | ~25% (Phase 1 of 8 completed) |
-| **Next 3 Actions** | 1. Split App.jsx into smaller modular components · 2. Add lucide-react icons · 3. Implement Place Details drawer Wikipedia & image enrichment |
+| **Current Phase** | Phase 2 — Explore & Place Details Polish [Complete] ✅ |
+| **Overall Progress** | ~45% (Phase 0, 1, 2 Complete) |
+| **Next 3 Actions** | 1. Phase 3 Recharts radar compare chart · 2. Add lucide-react icons · 3. Phase 4 Dashboard & Air Quality Pulse |
 | **Blockers** | None |
-| **Last Updated** | 2026-10-09 |
+| **Last Updated** | 2026-10-11 |
 
 ---
 
@@ -107,3 +107,66 @@
 
 **Verification:**
 - `python backend/smoke_test.py`: 11 PASSED, 0 FAILED.
+
+---
+
+### 2026-10-11 — One-Pass Frontend Redesign (Reference Design Implementation)
+
+**What was built & enhanced:**
+- **Color Palette & Design System**: Transformed theme to crisp white/light-blue background (`#F5F9FE`, `#EAF3FF`), primary blue `#0863C5`, deep navy text `#102440`, muted text `#65758B`, and custom rounded containers (`border-radius: 18px` and `24px`).
+- **Typography**: Added Google Fonts *Plus Jakarta Sans* and *Playfair Display* (for cursive highlights) into `frontend/index.html`.
+- **Top Navigation Bar**: Replaced plain header with reference-style compact navbar featuring brand logo badge, stylish title with cursive accent, weather pill, support contact pill (`+1 234 567 8900`), and user profile avatar.
+- **Hero Section**: Designed prominent hero section with badge pill (`EXPLORE. DREAM. DISCOVER.`), bold headline with cursive highlighted phrase (`Discover Amazing Places with Us`), dynamic subtitle tailored to user's active city, and prominent "Explore Now →" CTA button.
+- **Floating Search & Filter Panel**: Implemented floating white panel with category pills, multi-parameter inputs (Keyword/Place, City/Area, Max Budget ₹, Min Rating), and prominent blue Search button, plus dynamic radius selection pills.
+- **4 Feature Highlights**: Added row of 4 circular icon highlight cards ("Best Local Value", "Smart AI Itineraries", "Zero Bias Guarantee", "Handpicked Spots").
+- **Visual Place Cards**: Upgraded place cards into image-rich cards with badges (`Bestseller`, `Popular`, `Trending`), category badges, verified data source tags, location metadata, pricing indicators (`From ₹...` / `Free`), star ratings, distance metrics, and functional "Compare" checkbox.
+- **Secondary Feature Section**: Built "Why Choose Roamly?" 2x2 grid alongside the "Your Next Adventure Awaits!" promotional photo card.
+- **Newsletter Banner**: Implemented bottom blue newsletter banner with responsive email subscription form and social icons.
+- **Polished Footer**: Multi-column clean footer with brand overview, category shortcuts, transparency notes, and copyright.
+
+**Files changed:**
+- `frontend/index.html`: Added *Plus Jakarta Sans* and *Playfair Display* Google fonts.
+- `frontend/src/index.css`: Redesigned full theme tokens, hero layout, floating filter card, image cards, features, and responsive rules.
+- `frontend/src/App.jsx`: Integrated hero banner, floating filter, feature strip, card imagery, promo banner, newsletter strip, and structured footer while preserving all existing routes, state context, and backend APIs.
+- `docs/TASKS.md`, `docs/MEMORY.md`, `PROGRESS.md`: Updated checklist, decisions, and progress log.
+
+**Verification:**
+- Production build `npm run build`: PASSED (vite v6.4.4, built in 3.42s with 0 errors).
+- Functionality verified: Geolocation, city change modal, live filter query updates, tab navigation, drawer view, and compare feature.
+
+---
+
+### 2026-10-11 — Phase 2 Finish: Honesty Cleanup, Modularization, Favorites & Wikipedia Enrichment
+
+**What was built & refined:**
+- **Honesty Cleanup (Strict zero-fabrication rules)**:
+  - Place card badges now compute exclusively from genuine data: `"Top rated"` (rating >= 4.5), `"Free"` (price = 0), `"Nearest"` (smallest distance), and `"Heritage"` (historical category). Removed speculative badges ("Bestseller", "Popular", "Trending").
+  - Renamed feature highlights to transparent phrases: *"Open data, no sponsored listings"*, *"Places from OpenStreetMap"*, and *"AI place assistant"*.
+  - Replaced stock photos with honest category glyph visuals labeled `"Category Visual"`, reserving real photography strictly for verified Wikimedia/Wikipedia assets.
+  - Labeled the newsletter subscription card as `"Demo"` and disabled submission.
+  - Ensured missing attributes explicitly show `"Not available"`.
+- **Modularization**:
+  - Split `App.jsx` from a monolithic file into clean, modular components inside `frontend/src/components/`:
+    - `LocationBar.jsx` (~20 lines)
+    - `LocationModal.jsx` (~50 lines)
+    - `Hero.jsx` (~28 lines)
+    - `FilterPanel.jsx` (~125 lines)
+    - `PlaceCard.jsx` (~90 lines)
+    - `ExploreTab.jsx` (~195 lines)
+    - `AssistantTab.jsx` (~90 lines)
+    - `CompareTab.jsx` (~65 lines)
+    - `Footer.jsx` (~55 lines)
+  - Result: `App.jsx` reduced to ~230 lines of clean state orchestration.
+- **Favorites & Enrichment**:
+  - Saved places persist to `localStorage` under `roamly_saved_places`.
+  - Added live `Favorites (N)` badge in the top navigation bar.
+  - Added `/api/wiki-summary?title=...` proxy in FastAPI (`backend/main.py`) with memory caching.
+  - Place details drawer (`PlaceDrawer.jsx`) displays Wikipedia encyclopedia extract & Wikimedia thumbnail with label `"Source: Wikipedia"` when a place has a `wikipedia` tag.
+- **Branch**:
+  - Switched to git branch `phase-2-finish`.
+
+**Verification:**
+- `python backend/smoke_test.py`: 11/11 PASSED.
+- `GET /api/wiki-summary?title=Shaniwar_Wada`: 200 OK (returned authentic summary).
+- `npm run build`: PASSED (built in 11.89s, 0 errors).
+- Tabs verified: Explore, Map, AI Assistant, and Compare all functional.

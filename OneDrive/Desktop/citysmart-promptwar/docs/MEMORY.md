@@ -38,10 +38,15 @@ Frontend data flow:
 | React Context (not Zustand) | State is manageable; avoid extra dependency | 2026-10-09 |
 | Mock layer via `VITE_USE_MOCK=true` | Enables frontend dev without backend running | 2026-10-09 |
 | `out center;` in Overpass query | Returns lat/lng for ways and relations, not just nodes | 2026-10-09 |
+| Blue travel design system & image cards | Matched reference layout (hero, floating search, feature strip, footer) | 2026-10-11 |
+| Honesty cleanup & category visuals | Badges strictly from data (Top rated, Free, Nearest, Heritage); no stock photos | 2026-10-11 |
+| Modularized App.jsx components | All components in frontend/src/components/ under ~200 lines each | 2026-10-11 |
+| Wikipedia REST Proxy endpoint | Cached /api/wiki-summary proxy with 10m TTL in backend | 2026-10-11 |
+| Favorites in localStorage | Stored in roamly_saved_places with live navbar counter | 2026-10-11 |
 
 ---
 
-## API Endpoints (current as of Phase 0)
+## API Endpoints (current)
 
 | Method | Path | Notes |
 |---|---|---|
@@ -51,6 +56,7 @@ Frontend data flow:
 | `POST` | `/api/compare` | Accepts `ids` or full `places` objects |
 | `POST` | `/api/assistant` | Gemini → regex fallback, grounded results |
 | `GET` | `/api/weather?lat=…&lng=…` | Open-Meteo, fallback payload on error |
+| `GET` | `/api/wiki-summary?title=…` | Wikipedia REST summary & thumbnail proxy with in-memory caching |
 
 **NEVER rename or delete these endpoints.**
 

@@ -60,3 +60,9 @@ export async function fetchGeocode(params = {}) {
   if (params.q) qs.set('q', params.q);
   return request(`/api/geocode?${qs}`);
 }
+
+export async function fetchWikiSummary(title) {
+  if (!title) return null;
+  const qs = new URLSearchParams({ title });
+  return request(`/api/wiki-summary?${qs}`).catch(() => null);
+}
